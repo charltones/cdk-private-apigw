@@ -9,7 +9,8 @@ You can connect to the test host using SSM as follows:
 
 `export AWS_REGION=eu-west-1`
 
-```export BASTION_INSTANCE_ID=$(aws ec2 describe-instances \
+```
+export BASTION_INSTANCE_ID=$(aws ec2 describe-instances \
                           --region=$AWS_REGION \
                           --filter "Name=tag:Name,Values=my-bastion" \
                           --query "Reservations[].Instances[?State.Name == 'running'].InstanceId[]" \
