@@ -5,7 +5,9 @@ from aws_cdk import (
     aws_lambda as _lambda,
     aws_apigateway as apigw,
     aws_route53 as r53,
-    aws_route53_targets as r53targets
+    aws_route53_targets as r53targets,
+    aws_elasticloadbalancingv2 as elb,
+    aws_elasticloadbalancingv2_targets as elbtargets
 )
 
 from aws_cdk.aws_ec2 import BastionHostLinux, InstanceType, AmazonLinuxImage, \
@@ -206,3 +208,45 @@ class CdkPrivateApigwStack(core.Stack):
           record_name = '*.execute-api.eu-west-1.amazonaws.com',
           zone = my_zone)
         '''
+        
+        my_lambda_proxy1 = _lambda.Function(
+            self, 'Handler_Proxy1',
+            runtime=_lambda.Runtime.PYTHON_3_7,
+            code=_lambda.Code.asset('lambda'),
+            handler='handler_proxy.handler',
+            environment={
+              'apihost': "%s-%s.execute-api.eu-west-1.amazonaws.com" %
+                (api1.rest_api_id, vpc_endpoint1.vpc_endpoint_id)
+            },
+            vpc= api_vpc1,
+            vpc_subnets=SubnetSelection(subnet_type=SubnetType.PRIVATE),
+        )
+        alb1 = elb.ApplicationLoadBalancer(self, "myALB1",
+          vpc=client_vpc,
+          internet_facing=False,
+          load_balancer_name="myALB1")
+        listener1 = alb1.add_listener("Listener1", port=80)
+        listener1.add_targets("Target1", 
+          targets=[elbtargets.LambdaTarget(my_lambda_proxy1)])
+        listener1.connections.allow_default_port_from_any_ipv4("Open to the world")
+
+        my_lambda_proxy2 = _lambda.Function(
+            self, 'Handler_Proxy2',
+            runtime=_lambda.Runtime.PYTHON_3_7,
+            code=_lambda.Code.asset('lambda'),
+            handler='handler_proxy.handler',
+            environment={
+              'apihost': "%s-%s.execute-api.eu-west-1.amazonaws.com" %
+                (api2.rest_api_id, vpc_endpoint2.vpc_endpoint_id)
+            },
+            vpc= api_vpc2,
+            vpc_subnets=SubnetSelection(subnet_type=SubnetType.PRIVATE),
+        )
+        alb2 = elb.ApplicationLoadBalancer(self, "myALB2",
+          vpc=client_vpc,
+          internet_facing=False,
+          load_balancer_name="myALB2")
+        listener2 = alb2.add_listener("Listener2", port=80)
+        listener2.add_targets("Target2", 
+          targets=[elbtargets.LambdaTarget(my_lambda_proxy2)])
+        listener2.connections.allow_default_port_from_any_ipv4("Open to the world")
