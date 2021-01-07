@@ -3,3 +3,4 @@ pytest
 aws-cdk
 aws-cdk.aws_apigateway
 aws-cdk.aws-lambda
+aws-cdk.aws_route53_targets

@@ -8,5 +8,5 @@ def handler(event, context):
         'headers': {
             'Content-Type': 'text/plain'
         },
-        'body': 'API1 Handler2! You have hit {}\n'.format(event['path'])
+        'body': 'API2 Handler1! You have hit {}\n'.format(event['path'])
     }
