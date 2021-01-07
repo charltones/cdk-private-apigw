@@ -77,14 +77,14 @@ class CdkPrivateApigwStack(core.Stack):
         vpc_endpoint1 = InterfaceVpcEndpoint(self, 'API1VpcEndpoint',
           vpc=api_vpc1,
           service=InterfaceVpcEndpointAwsService.APIGATEWAY,
-          private_dns_enabled=False,
+          private_dns_enabled=True,
         )
         vpc_endpoint1.connections.allow_from(bastion, Port.tcp(443))
         endpoint_id1 = vpc_endpoint1.vpc_endpoint_id
         vpc_endpoint2 = InterfaceVpcEndpoint(self, 'API2VpcEndpoint',
           vpc=api_vpc2,
           service=InterfaceVpcEndpointAwsService.APIGATEWAY,
-          private_dns_enabled=False,
+          private_dns_enabled=True,
         )
         vpc_endpoint2.connections.allow_from(bastion, Port.tcp(443))
         endpoint_id2 = vpc_endpoint2.vpc_endpoint_id
@@ -215,14 +215,14 @@ class CdkPrivateApigwStack(core.Stack):
             code=_lambda.Code.asset('lambda'),
             handler='handler_proxy.handler',
             environment={
-              'apihost': "%s-%s.execute-api.eu-west-1.amazonaws.com" %
-                (api1.rest_api_id, vpc_endpoint1.vpc_endpoint_id)
+              'apihost': "%s.execute-api.eu-west-1.amazonaws.com" %
+                (api1.rest_api_id)
             },
             vpc= api_vpc1,
             vpc_subnets=SubnetSelection(subnet_type=SubnetType.PRIVATE),
         )
         alb1 = elb.ApplicationLoadBalancer(self, "myALB1",
-          vpc=client_vpc,
+          vpc=api_vpc1,
           internet_facing=False,
           load_balancer_name="myALB1")
         listener1 = alb1.add_listener("Listener1", port=80)
@@ -236,14 +236,14 @@ class CdkPrivateApigwStack(core.Stack):
             code=_lambda.Code.asset('lambda'),
             handler='handler_proxy.handler',
             environment={
-              'apihost': "%s-%s.execute-api.eu-west-1.amazonaws.com" %
-                (api2.rest_api_id, vpc_endpoint2.vpc_endpoint_id)
+              'apihost': "%s.execute-api.eu-west-1.amazonaws.com" %
+                (api2.rest_api_id)
             },
             vpc= api_vpc2,
             vpc_subnets=SubnetSelection(subnet_type=SubnetType.PRIVATE),
         )
         alb2 = elb.ApplicationLoadBalancer(self, "myALB2",
-          vpc=client_vpc,
+          vpc=api_vpc2,
           internet_facing=False,
           load_balancer_name="myALB2")
         listener2 = alb2.add_listener("Listener2", port=80)
